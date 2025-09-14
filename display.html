@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sensetack</title>
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('https://media.istockphoto.com/id/170643619/photo/fresh-green-meadow-in-mountains.jpg?s=612x612&w=0&k=20&c=bk9ZyIEZ14ZYEZlAMj2nAawYqljhViKjQfPGH6ppeE4=') no-repeat center center fixed;
+      background-size: cover;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      text-align: center;
+      padding: 2rem 1rem;
+      background-color: rgba(135, 206, 250, 0.9);
+      color: #ffffff;
+      width: 100%;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    header h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    header p { font-size: 1.2rem; }
+    main { display: flex; flex-direction: column; align-items: center; gap: 2rem; padding: 2rem; width: 100%; max-width: 1200px; }
+    .cards { display: flex; gap: 2rem; flex-wrap: wrap; justify-content: center; width: 100%; }
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      padding: 2rem;
+      text-align: center;
+      flex: 1 1 250px;
+      transition: transform 0.3s ease;
+    }
+    .card:hover { transform: translateY(-5px); }
+    .card h2 { font-size: 1.5rem; margin-bottom: 1rem; color: #0077b6; }
+    .card p { font-size: 2rem; color: #023e8a; }
+    .quote-box {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 1rem 2rem;
+      border-left: 5px solid #0077b6;
+      border-radius: 10px;
+      font-style: italic;
+      color: #333;
+      text-align: center;
+      max-width: 800px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      margin-top: auto;
+      padding: 1rem;
+      background-color: rgba(135, 206, 250, 0.9);
+      color: white;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Chart layout */
+    .chart-container {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      width: 100%;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .chart-box {
+      background: white;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .chart-box h3 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      color: #0077b6;
+    }
+    canvas {
+      width: 100% !important;
+      height: 250px !important;
+    }
+    @media (max-width: 768px) {
+      .charts-grid {
+        grid-template-columns: 1fr; /* stack on small screens */
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🌞 Sensestack</h1>
+    <p>Live Temperature, Humidity, Pressure & Air Quality</p>
+  </header>
+
+  <main>
+    <div class="cards">
+      <section class="card">
+        <h2>🌡️ Temperature</h2>
+        <p id="temp">-- °C</p>
+      </section>
+      <section class="card">
+        <h2>💧 Humidity</h2>
+        <p id="humidity">-- %</p>
+      </section>
+      <section class="card">
+        <h2>🔵 Pressure</h2>
+        <p id="pressure">-- hPa</p>
+      </section>
+      <section class="card">
+        <h2>🗻 Altitude</h2>
+        <p id="altitude">-- m</p>
+      </section>
+      <section class="card">
+        <h2>🫁 CO₂</h2>
+        <p id="co2">-- ppm</p>
+      </section>
+      <section class="card">
+        <h2>🌫️ TVOC</h2>
+        <p id="tvoc">-- ppb</p>
+      </section>
+    </div>
+
+    <div class="quote-box" id="weather-quote">
+      "Wherever you go, no matter what the weather, always bring your own sunshine."
+    </div>
+
+    <div class="chart-container">
+      <h2 style="text-align:center; margin-bottom: 1rem; color:#0077b6;">📊 Sensor Data Over Time</h2>
+      <div class="charts-grid">
+        <div class="chart-box"><h3>Temperature</h3><canvas id="tempChart"></canvas></div>
+        <div class="chart-box"><h3>Humidity</h3><canvas id="humidityChart"></canvas></div>
+        <div class="chart-box"><h3>Pressure</h3><canvas id="pressureChart"></canvas></div>
+        <div class="chart-box"><h3>Altitude</h3><canvas id="altitudeChart"></canvas></div>
+        <div class="chart-box"><h3>CO₂</h3><canvas id="co2Chart"></canvas></div>
+        <div class="chart-box"><h3>TVOC</h3><canvas id="tvocChart"></canvas></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    &copy; 2025 SolarTech Systems
+  </footer>
+
+  <script>
+    const tempDisplay = document.getElementById('temp');
+    const humidityDisplay = document.getElementById('humidity');
+    const pressureDisplay = document.getElementById('pressure');
+    const altitudeDisplay = document.getElementById('altitude');
+    const co2Display = document.getElementById('co2');
+    const tvocDisplay = document.getElementById('tvoc');
+
+    // Chart.js factory function
+    const chartConfigs = (label, borderColor, bgColor) => ({
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label,
+            data: [],
+            borderColor,
+            backgroundColor: bgColor,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          x: { title: { display: true, text: "Time" } },
+          y: { beginAtZero: false, title: { display: true, text: label } }
+        }
+      }
+    });
+
+    // Create charts
+    const tempChart = new Chart(document.getElementById("tempChart"), chartConfigs("Temperature (°C)", "#ff6f61", "rgba(255, 111, 97, 0.2)"));
+    const humidityChart = new Chart(document.getElementById("humidityChart"), chartConfigs("Humidity (%)", "#1e90ff", "rgba(30, 144, 255, 0.2)"));
+    const pressureChart = new Chart(document.getElementById("pressureChart"), chartConfigs("Pressure (hPa)", "#00b894", "rgba(0, 184, 148, 0.2)"));
+    const altitudeChart = new Chart(document.getElementById("altitudeChart"), chartConfigs("Altitude (m)", "#ffa500", "rgba(255, 165, 0, 0.2)"));
+    const co2Chart = new Chart(document.getElementById("co2Chart"), chartConfigs("CO₂ (ppm)", "#8a2be2", "rgba(138, 43, 226, 0.2)"));
+    const tvocChart = new Chart(document.getElementById("tvocChart"), chartConfigs("TVOC (ppb)", "#ff1493", "rgba(255, 20, 147, 0.2)"));
+
+    // Update function for all charts
+    function updateCharts(latest) {
+      const now = new Date().toLocaleTimeString();
+
+      const pushData = (chart, value) => {
+        if (chart.data.labels.length > 10) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
+        }
+        chart.data.labels.push(now);
+        chart.data.datasets[0].data.push(value || null);
+        chart.update();
+      };
+
+      pushData(tempChart, latest.field1);
+      pushData(humidityChart, latest.field2);
+      pushData(pressureChart, latest.field3);
+      pushData(altitudeChart, latest.field4);
+      pushData(co2Chart, latest.field5);
+      pushData(tvocChart, latest.field6);
+    }
+
+    // Weather quotes rotation
+    const quotes = [
+      "Wherever you go, no matter what the weather, always bring your own sunshine. – Anthony J. D’Angelo",
+      "Climate is what we expect, weather is what we get. – Mark Twain",
+      "There’s no such thing as bad weather, only inappropriate clothing. – Alfred Wainwright",
+      "Some people feel the rain. Others just get wet. – Bob Marley",
+      "After rain comes sunshine; after night comes dawn. – Patrick Henry"
+    ];
+    let quoteIndex = 0;
+    setInterval(() => {
+      quoteIndex = (quoteIndex + 1) % quotes.length;
+      document.getElementById("weather-quote").textContent = quotes[quoteIndex];
+    }, 8000);
+
+    // ---------- ThingSpeak Integration ----------
+    const channelID = "3073895";
+    const apiKey = "WJ654VK80FPVMGN7";
+
+    function fetchThingSpeakData() {
+      const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${apiKey}&results=1`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const feeds = data.feeds;
+          if (feeds.length > 0) {
+            const latest = feeds[0];
+
+            // Update cards
+            tempDisplay.textContent = `${latest.field1 || "--"} °C`;
+            humidityDisplay.textContent = `${latest.field2 || "--"} %`;
+            pressureDisplay.textContent = `${latest.field3 || "--"} hPa`;
+            altitudeDisplay.textContent = `${latest.field4 || "--"} m`;
+            co2Display.textContent = `${latest.field5 || "--"} ppm`;
+            tvocDisplay.textContent = `${latest.field6 || "--"} ppb`;
+
+            // Update charts
+            updateCharts(latest);
+          }
+        })
+        .catch(error => console.error("Error fetching ThingSpeak data:", error));
+    }
+
+    // Fetch every 15s
+    fetchThingSpeakData();
+    setInterval(fetchThingSpeakData, 15000);
+  </script>
+</body>
+</html>
